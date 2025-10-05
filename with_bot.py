@@ -4,7 +4,6 @@ import random
 import time
 
 pygame.init()
-pygame.mixer.init()
 
 # --- Налаштування ---
 WIDTH, HEIGHT = 600, 700
@@ -23,9 +22,10 @@ LINE_COLOR = (23, 145, 135)
 CIRCLE_COLOR = (239, 231, 200)
 CROSS_COLOR = (84, 84, 84)
 TEXT_COLOR = (255, 255, 255)
+WIN_LINE_COLOR = (255,0,0)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Tic Tac Toe")
+pygame.display.set_caption("Tic Tac Toe by Pavlo 🧠")
 
 font = pygame.font.SysFont("comicsans", 50)
 small_font = pygame.font.SysFont("comicsans", 30)
@@ -34,15 +34,18 @@ small_font = pygame.font.SysFont("comicsans", 30)
 board = [[0]*BOARD_COLS for _ in range(BOARD_ROWS)]
 player = 1
 game_over = False
+winner_player = None
 mode = None  # 1: PvP, 2: PvE, 3: EvP, 4: EvE
 score = {"X": 0, "O": 0}
+win_line = None
 
+# --- Функції ---
 def draw_lines():
     screen.fill(BG_COLOR)
-    pygame.draw.line(screen, LINE_COLOR, (0, SQUARE_SIZE), (WIDTH, SQUARE_SIZE), LINE_WIDTH)
-    pygame.draw.line(screen, LINE_COLOR, (0, 2*SQUARE_SIZE), (WIDTH, 2*SQUARE_SIZE), LINE_WIDTH)
-    pygame.draw.line(screen, LINE_COLOR, (SQUARE_SIZE, 0), (SQUARE_SIZE, WIDTH), LINE_WIDTH)
-    pygame.draw.line(screen, LINE_COLOR, (2*SQUARE_SIZE, 0), (2*SQUARE_SIZE, WIDTH), LINE_WIDTH)
+    for i in range(1, BOARD_ROWS):
+        pygame.draw.line(screen, LINE_COLOR, (0, i*SQUARE_SIZE), (WIDTH, i*SQUARE_SIZE), LINE_WIDTH)
+    for i in range(1, BOARD_COLS):
+        pygame.draw.line(screen, LINE_COLOR, (i*SQUARE_SIZE, 0), (i*SQUARE_SIZE, WIDTH), LINE_WIDTH)
 
 def draw_figures():
     for row in range(BOARD_ROWS):
@@ -68,27 +71,44 @@ def is_board_full():
     return all(board[row][col] != 0 for row in range(BOARD_ROWS) for col in range(BOARD_COLS))
 
 def check_win(player):
-    # Перевірка рядків, колонок, діагоналей
+    global win_line
+    # Колонки
     for col in range(BOARD_COLS):
-        if board[0][col] == board[1][col] == board[2][col] == player: return True
+        if board[0][col] == board[1][col] == board[2][col] == player:
+            win_line = ((col*SQUARE_SIZE + SQUARE_SIZE//2, 0), (col*SQUARE_SIZE + SQUARE_SIZE//2, WIDTH))
+            return True
+    # Рядки
     for row in range(BOARD_ROWS):
-        if board[row][0] == board[row][1] == board[row][2] == player: return True
-    if board[0][0] == board[1][1] == board[2][2] == player: return True
-    if board[2][0] == board[1][1] == board[0][2] == player: return True
+        if board[row][0] == board[row][1] == board[row][2] == player:
+            win_line = ((0, row*SQUARE_SIZE + SQUARE_SIZE//2), (WIDTH, row*SQUARE_SIZE + SQUARE_SIZE//2))
+            return True
+    # Діагоналі
+    if board[0][0] == board[1][1] == board[2][2] == player:
+        win_line = ((0,0), (WIDTH, WIDTH))
+        return True
+    if board[2][0] == board[1][1] == board[0][2] == player:
+        win_line = ((0, WIDTH), (WIDTH,0))
+        return True
     return False
 
+def draw_win_line():
+    if win_line:
+        pygame.draw.line(screen, WIN_LINE_COLOR, win_line[0], win_line[1], 10)
+
 def restart():
-    global board, player, game_over
+    global board, player, game_over, win_line, winner_player
     board = [[0]*BOARD_COLS for _ in range(BOARD_ROWS)]
     player = 1
     game_over = False
+    winner_player = None
+    win_line = None
     draw_lines()
 
 def ai_move():
     empty = [(r, c) for r in range(3) for c in range(3) if board[r][c] == 0]
     if empty:
         r, c = random.choice(empty)
-        mark_square(r, c, 2 if player == 2 else 1)
+        mark_square(r, c, player)
         return r, c
     return None
 
@@ -133,10 +153,8 @@ while True:
                     if rect.collidepoint(pos):
                         mode = m
                         restart()
-
         else:
             if not game_over:
-                # Ходи гравця (X або O)
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mouseX, mouseY = event.pos
                     if mouseY < WIDTH:
@@ -149,6 +167,7 @@ while True:
                                 mark_square(clicked_row, clicked_col, player)
                                 if check_win(player):
                                     game_over = True
+                                    winner_player = player
                                     score["X" if player == 1 else "O"] += 1
                                 player = player % 2 + 1
 
@@ -162,6 +181,7 @@ while True:
             move = ai_move()
             if move and check_win(player):
                 game_over = True
+                winner_player = player
                 score["X" if player == 1 else "O"] += 1
             player = player % 2 + 1
 
@@ -171,7 +191,17 @@ while True:
         draw_score()
 
         if game_over:
-            draw_text_center("Game Over!", 60, HEIGHT//2)
+            if winner_player:
+                if mode == 1:
+                    winner_name = "Гравець X" if winner_player == 1 else "Гравець O"
+                elif mode == 2:
+                    winner_name = "Гравець" if winner_player == 1 else "Бот"
+                elif mode == 3:
+                    winner_name = "Бот" if winner_player == 1 else "Гравець"
+                elif mode == 4:
+                    winner_name = "Бот X" if winner_player == 1 else "Бот O"
+                draw_text_center(f"{winner_name} виграв!", 50, HEIGHT//2)
+                draw_win_line()
             draw_text_center("Press SPACE to Restart", 30, HEIGHT//2 + 60)
             draw_text_center("Press ESC for Menu", 25, HEIGHT - 40)
 
