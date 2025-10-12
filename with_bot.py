@@ -22,7 +22,7 @@ LINE_COLOR = (23, 145, 135)
 CIRCLE_COLOR = (239, 231, 200)
 CROSS_COLOR = (84, 84, 84)
 TEXT_COLOR = (255, 255, 255)
-WIN_LINE_COLOR = (255,0,0)
+WIN_LINE_COLOR = (255, 0, 0)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Tic Tac Toe")
@@ -84,10 +84,10 @@ def check_win(player):
             return True
     # Діагоналі
     if board[0][0] == board[1][1] == board[2][2] == player:
-        win_line = ((0,0), (WIDTH, WIDTH))
+        win_line = ((0, 0), (WIDTH, WIDTH))
         return True
     if board[2][0] == board[1][1] == board[0][2] == player:
-        win_line = ((0, WIDTH), (WIDTH,0))
+        win_line = ((0, WIDTH), (WIDTH, 0))
         return True
     return False
 
@@ -169,6 +169,9 @@ while True:
                                     game_over = True
                                     winner_player = player
                                     score["X" if player == 1 else "O"] += 1
+                                elif is_board_full():  # --- ДОДАНО НІЧИЮ ---
+                                    game_over = True
+                                    winner_player = 0
                                 player = player % 2 + 1
 
     # Ходи бота
@@ -183,6 +186,9 @@ while True:
                 game_over = True
                 winner_player = player
                 score["X" if player == 1 else "O"] += 1
+            elif is_board_full():  # --- ДОДАНО НІЧИЮ ---
+                game_over = True
+                winner_player = 0
             player = player % 2 + 1
 
     if mode:
@@ -191,7 +197,9 @@ while True:
         draw_score()
 
         if game_over:
-            if winner_player:
+            if winner_player == 0:
+                draw_text_center("НІЧИЯ!", 60, HEIGHT//2)
+            else:
                 if mode == 1:
                     winner_name = "Гравець X" if winner_player == 1 else "Гравець O"
                 elif mode == 2:
@@ -202,6 +210,8 @@ while True:
                     winner_name = "Бот X" if winner_player == 1 else "Бот O"
                 draw_win_line()
                 draw_text_center(f"{winner_name} виграв!", 50, HEIGHT//2)
+
+
             draw_text_center("Press SPACE to Restart", 30, HEIGHT//2 + 60)
             draw_text_center("Press ESC for Menu", 25, HEIGHT - 40)
 
