@@ -200,8 +200,8 @@ while True:
                     winner_name = "Бот" if winner_player == 1 else "Гравець"
                 elif mode == 4:
                     winner_name = "Бот X" if winner_player == 1 else "Бот O"
-                draw_text_center(f"{winner_name} виграв!", 50, HEIGHT//2)
                 draw_win_line()
+                draw_text_center(f"{winner_name} виграв!", 50, HEIGHT//2)
             draw_text_center("Press SPACE to Restart", 30, HEIGHT//2 + 60)
             draw_text_center("Press ESC for Menu", 25, HEIGHT - 40)
 
