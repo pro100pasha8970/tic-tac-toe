@@ -25,7 +25,7 @@ TEXT_COLOR = (255, 255, 255)
 WIN_LINE_COLOR = (255,0,0)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Tic Tac Toe by Pavlo 🧠")
+pygame.display.set_caption("Tic Tac Toe")
 
 font = pygame.font.SysFont("comicsans", 50)
 small_font = pygame.font.SysFont("comicsans", 30)
